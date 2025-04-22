@@ -1,0 +1,10 @@
+aws-cdk-lib
+constructs
+python-dotenv
+boto3
+pytest
+pytest-cov
+pytest-mock
+pandas
+requests
+numpy

@@ -5,30 +5,31 @@ from aws_cdk import (
     aws_events as events,
     aws_events_targets as targets,
     aws_iam as iam,
-    Duration
+    Duration,
+    SecretValue
 )
 from constructs import Construct
 
 class FeaturePipelineStack(Stack):
-    def __init__(self, scope: Construct, id: str, **kwargs) -> None:
-        super().__init__(scope, id, **kwargs)
+    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+        super().__init__(scope, construct_id, **kwargs)
 
         # Create Lambda function
         feature_pipeline_lambda = _lambda.Function(
             self, 'FeaturePipelineLambda',
             runtime=_lambda.Runtime.PYTHON_3_9,
-            code=_lambda.Code.from_asset('src/lambda'),
-            handler='feature_pipeline_handler.lambda_handler',
+            code=_lambda.Code.from_asset('src'),  # Include entire src directory
+            handler='lambda.feature_pipeline_handler.lambda_handler',
             timeout=Duration.minutes(5),
             environment={
-                'FEATURE_GROUP_NAME': 'air-quality-features-08-14-56-40',
+                'FEATURE_GROUP_NAME': 'your-feature-group-name',
                 'CITIES': 'los angeles',
-                'WEATHER_API_KEY': '{{resolve:secretsmanager:weather-api-key}}',
-                'AIR_QUALITY_API_KEY': '{{resolve:secretsmanager:air-quality-api-key}}'
+                'WEATHER_API_KEY': SecretValue.secrets_manager('weather-api-key').to_string(),
+                'AIR_QUALITY_API_KEY': SecretValue.secrets_manager('air-quality-api-key').to_string()
             }
         )
 
-        # Add necessary permissions
+        # Add SageMaker Feature Store permissions
         feature_pipeline_lambda.add_to_role_policy(
             iam.PolicyStatement(
                 actions=[
@@ -39,7 +40,7 @@ class FeaturePipelineStack(Stack):
             )
         )
 
-        # Create EventBridge rule to trigger Lambda
+        # Create EventBridge rule to trigger Lambda daily
         rule = events.Rule(
             self, 'FeaturePipelineSchedule',
             schedule=events.Schedule.cron(

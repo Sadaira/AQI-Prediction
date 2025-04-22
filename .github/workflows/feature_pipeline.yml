@@ -1,0 +1,46 @@
+# .github/workflows/feature-pipeline.yml
+name: Feature Pipeline CI/CD
+
+on:
+  push:
+    paths:
+      - 'src/pipelines/feature_pipeline.py'
+      - 'src/lambda/feature_pipeline_handler.py'
+      - 'tests/test_feature_pipeline.py'
+      - 'infrastructure/feature_pipeline_stack.py'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+      - name: Run tests
+        run: |
+          pytest tests/test_feature_pipeline.py --cov=src/pipelines
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+      - name: Deploy with CDK
+        run: |
+          npm install -g aws-cdk
+          pip install -r requirements.txt
+          cdk deploy FeaturePipelineStack --require-approval never

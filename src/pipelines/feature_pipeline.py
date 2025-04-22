@@ -117,8 +117,10 @@ class FeaturePipeline:
                                  if col in features.columns], inplace=True)
             
             # Clean and convert pm25 values
-            features['pm25'] = features['pm25'].str.strip()
-            features['pm25'] = features['pm25'].replace(' ', np.nan)
+            if features['pm25'].dtype == 'object':  # If pm25 is string
+                features['pm25'] = (features['pm25'].astype(str)
+                                .str.strip()
+                                .replace(' ', np.nan))
             features['pm25'] = pd.to_numeric(features['pm25'], errors='coerce')
             features['pm25'] = features['pm25'].astype('Int64') 
             
