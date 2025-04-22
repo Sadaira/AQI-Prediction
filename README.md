@@ -1,5 +1,5 @@
 # Air Quality Prediction
-The purpose of this project is to build a system that predicts air quality in several cities using real-time air quality data.
+The purpose of this project is to build a system that predicts air quality in Los Angeles, California using real-time weather and air quality data.
 
 
 ## Data Source
@@ -8,17 +8,15 @@ The data used for this project is being retrieved from the []() and [](). The hi
 
 ## Prediction Problem
 
-
-## UI/Dashboard
-
-
 ## Architecture
 
 ### Feature Pipelines
 Backfill feature pipeline
 Production feature pipeline
 
-
 ### Train Pipeline
 
 ### Inference Pipeline
+
+
+
