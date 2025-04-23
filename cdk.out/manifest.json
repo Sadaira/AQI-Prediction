@@ -1,0 +1,102 @@
+{
+  "version": "41.0.0",
+  "artifacts": {
+    "AQIPredictionFeaturePipeline.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "AQIPredictionFeaturePipeline.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+      }
+    },
+    "AQIPredictionFeaturePipeline": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://unknown-account/unknown-region",
+      "properties": {
+        "templateFile": "AQIPredictionFeaturePipeline.template.json",
+        "terminationProtection": false,
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-deploy-role-${AWS::AccountId}-${AWS::Region}",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-cfn-exec-role-${AWS::AccountId}-${AWS::Region}",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/c007c33ec650a8ac3a5ff4c1f4a4f7f26a56d575468c769766a6cb9f7a6f9c3e.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
+        "additionalDependencies": [
+          "AQIPredictionFeaturePipeline.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-lookup-role-${AWS::AccountId}-${AWS::Region}",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+        }
+      },
+      "dependencies": [
+        "AQIPredictionFeaturePipeline.assets"
+      ],
+      "metadata": {
+        "/AQIPredictionFeaturePipeline/FeaturePipelineLambda/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "FeaturePipelineLambdaServiceRoleEA11F51B"
+          }
+        ],
+        "/AQIPredictionFeaturePipeline/FeaturePipelineLambda/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "FeaturePipelineLambdaServiceRoleDefaultPolicyB40F9716"
+          }
+        ],
+        "/AQIPredictionFeaturePipeline/FeaturePipelineLambda/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "FeaturePipelineLambda4D14BAF7"
+          }
+        ],
+        "/AQIPredictionFeaturePipeline/FeaturePipelineSchedule/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "FeaturePipelineScheduleA5E9EDF9"
+          }
+        ],
+        "/AQIPredictionFeaturePipeline/FeaturePipelineSchedule/AllowEventRuleAQIPredictionFeaturePipelineFeaturePipelineLambdaC8DFD9AF": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "FeaturePipelineScheduleAllowEventRuleAQIPredictionFeaturePipelineFeaturePipelineLambdaC8DFD9AF8790A03E"
+          }
+        ],
+        "/AQIPredictionFeaturePipeline/CDKMetadata/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadata"
+          }
+        ],
+        "/AQIPredictionFeaturePipeline/CDKMetadata/Condition": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadataAvailable"
+          }
+        ],
+        "/AQIPredictionFeaturePipeline/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/AQIPredictionFeaturePipeline/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "AQIPredictionFeaturePipeline"
+    },
+    "Tree": {
+      "type": "cdk:tree",
+      "properties": {
+        "file": "tree.json"
+      }
+    }
+  },
+  "minimumCliVersion": "2.1005.0"
+}

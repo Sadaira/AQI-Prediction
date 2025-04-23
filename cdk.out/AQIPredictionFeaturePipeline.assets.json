@@ -1,0 +1,34 @@
+{
+  "version": "41.0.0",
+  "files": {
+    "2ffdf1e02c97725cf36b19d72ea29c0b936db4c4a79589a3ad88b1e8c4e604a2": {
+      "displayName": "FeaturePipelineLambda/Code",
+      "source": {
+        "path": "asset.2ffdf1e02c97725cf36b19d72ea29c0b936db4c4a79589a3ad88b1e8c4e604a2",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "current_account-current_region": {
+          "bucketName": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}",
+          "objectKey": "2ffdf1e02c97725cf36b19d72ea29c0b936db4c4a79589a3ad88b1e8c4e604a2.zip",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-${AWS::Region}"
+        }
+      }
+    },
+    "c007c33ec650a8ac3a5ff4c1f4a4f7f26a56d575468c769766a6cb9f7a6f9c3e": {
+      "displayName": "AQIPredictionFeaturePipeline Template",
+      "source": {
+        "path": "AQIPredictionFeaturePipeline.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "current_account-current_region": {
+          "bucketName": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}",
+          "objectKey": "c007c33ec650a8ac3a5ff4c1f4a4f7f26a56d575468c769766a6cb9f7a6f9c3e.json",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-${AWS::Region}"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}
