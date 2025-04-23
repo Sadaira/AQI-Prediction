@@ -41,10 +41,16 @@ class FeaturePipelineStack(Stack):
         weather_api_secret.grant_read(feature_pipeline_lambda)
         air_quality_api_secret.grant_read(feature_pipeline_lambda)
 
-        # Create EventBridge rule
+        # Create EventBridge rule to run daily at a specific time (e.g., 12:00 PM UTC)
         rule = events.Rule(
             self, 'FeaturePipelineSchedule',
-            schedule=events.Schedule.rate(Duration.hours(1))
+            schedule=events.Schedule.cron(
+                minute='0',
+                hour='12',  # This will run at 12:00 PM UTC (adjust as needed)
+                day='*',
+                month='*',
+                year='*'
+            )
         )
 
         # Add Lambda as target

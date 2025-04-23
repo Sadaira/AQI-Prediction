@@ -154,7 +154,7 @@
   "FeaturePipelineScheduleA5E9EDF9": {
    "Type": "AWS::Events::Rule",
    "Properties": {
-    "ScheduleExpression": "rate(1 hour)",
+    "ScheduleExpression": "cron(0 12 * * ? *)",
     "State": "ENABLED",
     "Targets": [
      {
