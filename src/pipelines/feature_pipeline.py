@@ -96,7 +96,8 @@ class FeaturePipeline:
         except requests.exceptions.RequestException as e:
             logger.error(f"Error fetching air quality data: {str(e)}")
             raise
-    
+
+
     def process_features(self, weather_data: pd.DataFrame, 
                         air_quality_data: pd.DataFrame) -> pd.DataFrame:
         """Process and combine weather and air quality features."""
@@ -146,7 +147,8 @@ class FeaturePipeline:
         except Exception as e:
             logger.error(f"Error processing features: {str(e)}")
             raise  
-        
+
+
     def write_to_feature_store(self, features: pd.DataFrame) -> None:
         """Write processed features to SageMaker Feature Store."""
         for idx, row in features.iterrows():
@@ -167,6 +169,7 @@ class FeaturePipeline:
             except Exception as e:
                 logger.error(f"Error writing record {idx} to Feature Store: {str(e)}")
                 raise
+
 
     def run_pipeline(self, city: str = 'los angeles') -> pd.DataFrame:
         """Execute the complete feature pipeline."""
