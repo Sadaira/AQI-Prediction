@@ -3,7 +3,14 @@ import os
 import json
 import logging
 from datetime import datetime
-from ..pipelines.feature_pipeline import FeaturePipeline
+import sys
+from pathlib import Path
+
+src_dir = str(Path(__file__).resolve().parents[1])
+sys.path.append(src_dir)
+
+from pipelines.feature_pipeline import FeaturePipeline
+
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
