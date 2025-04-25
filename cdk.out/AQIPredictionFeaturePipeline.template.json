@@ -95,6 +95,16 @@
       },
       {
        "Action": [
+        "cloudwatch:PutMetricData",
+        "cloudwatch:GetMetricData",
+        "cloudwatch:GetMetricStatistics",
+        "cloudwatch:ListMetrics"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
         "sagemaker:PutRecord",
         "sagemaker:DescribeFeatureGroup"
        ],

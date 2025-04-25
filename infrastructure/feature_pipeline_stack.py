@@ -41,6 +41,19 @@ class FeaturePipelineStack(Stack):
         weather_api_secret.grant_read(feature_pipeline_lambda)
         air_quality_api_secret.grant_read(feature_pipeline_lambda)
 
+        # Add CloudWatch permissions
+        feature_pipeline_lambda.add_to_role_policy(
+            iam.PolicyStatement(
+                actions=[
+                    'cloudwatch:PutMetricData',
+                    'cloudwatch:GetMetricData',
+                    'cloudwatch:GetMetricStatistics',
+                    'cloudwatch:ListMetrics'
+                ],
+                resources=['*']
+            )
+        )
+
         # Create EventBridge rule to run daily at a specific time (e.g., 12:00 PM UTC)
         rule = events.Rule(
             self, 'FeaturePipelineSchedule',
