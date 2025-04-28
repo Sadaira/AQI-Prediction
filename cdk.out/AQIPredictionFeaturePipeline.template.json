@@ -40,6 +40,52 @@
     "PolicyDocument": {
      "Statement": [
       {
+       "Action": "secretsmanager:GetSecretValue",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":secretsmanager:",
+           {
+            "Ref": "AWS::Region"
+           },
+           ":",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":secret:weather-api-key-4ZbyEj"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":secretsmanager:",
+           {
+            "Ref": "AWS::Region"
+           },
+           ":",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":secret:air-quality-api-key-AM8xem"
+          ]
+         ]
+        }
+       ]
+      },
+      {
        "Action": [
         "secretsmanager:GetSecretValue",
         "secretsmanager:DescribeSecret"
@@ -61,7 +107,7 @@
           {
            "Ref": "AWS::AccountId"
           },
-          ":secret:weather-api-key-??????"
+          ":secret:weather-api-key-4ZbyEj-??????"
          ]
         ]
        }
@@ -88,7 +134,7 @@
           {
            "Ref": "AWS::AccountId"
           },
-          ":secret:air-quality-api-key-??????"
+          ":secret:air-quality-api-key-AM8xem-??????"
          ]
         ]
        }
@@ -132,12 +178,12 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
      },
-     "S3Key": "680349594c44878f62a0859d75d0fbf5a9fdabf91a6f46b34b90132c4c07d684.zip"
+     "S3Key": "2c23cf7ef02aefd9ce861c26aec51668be680dcd7da0c466a39a0e2774cc79cc.zip"
     },
     "Environment": {
      "Variables": {
-      "WEATHER_API_SECRET_NAME": "weather-api-key",
-      "AIR_QUALITY_API_SECRET_NAME": "air-quality-api-key",
+      "WEATHER_API_SECRET_NAME": "weather-api-key-4ZbyEj",
+      "AIR_QUALITY_API_SECRET_NAME": "air-quality-api-key-AM8xem",
       "FEATURE_GROUP_NAME": "air-quality-features-08-14-56-40",
       "CITIES": "los angeles"
      }
@@ -159,7 +205,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "AQIPredictionFeaturePipeline/FeaturePipelineLambda/Resource",
-    "aws:asset:path": "asset.680349594c44878f62a0859d75d0fbf5a9fdabf91a6f46b34b90132c4c07d684",
+    "aws:asset:path": "asset.2c23cf7ef02aefd9ce861c26aec51668be680dcd7da0c466a39a0e2774cc79cc",
     "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
    }
