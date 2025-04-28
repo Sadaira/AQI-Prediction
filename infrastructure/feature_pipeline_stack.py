@@ -1,3 +1,4 @@
+# infrastructure/feature_pipeline_stack.py
 from aws_cdk import (
     Stack,
     aws_lambda as _lambda,
@@ -8,6 +9,7 @@ from aws_cdk import (
     Duration
 )
 from constructs import Construct
+import os
 
 class FeaturePipelineStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
@@ -28,12 +30,25 @@ class FeaturePipelineStack(Stack):
         feature_pipeline_lambda = _lambda.Function(
             self, 'FeaturePipelineLambda',
             runtime=_lambda.Runtime.PYTHON_3_9,
-            handler='feature_pipeline_handler.lambda_handler',
-            code=_lambda.Code.from_asset('src/lambda'),
+            handler='lambda.feature_pipeline_handler.lambda_handler',
+            code=_lambda.Code.from_asset(
+                'src',
+                bundling={
+                    'image': _lambda.Runtime.PYTHON_3_9.bundling_image,
+                    'command': [
+                        "bash", "-c",
+                        "pip install --no-cache-dir -r requirements.txt -t /asset-output/ && cp -au . /asset-output/"
+                    ],
+                    'user': 'root'
+                }
+            ),
             timeout=Duration.minutes(5),
+            memory_size=256,
             environment={
                 'WEATHER_API_SECRET_NAME': weather_api_secret.secret_name,
-                'AIR_QUALITY_API_SECRET_NAME': air_quality_api_secret.secret_name
+                'AIR_QUALITY_API_SECRET_NAME': air_quality_api_secret.secret_name,
+                'FEATURE_GROUP_NAME': 'air-quality-features-08-14-56-40',
+                'CITIES': 'los angeles'
             }
         )
 
@@ -54,12 +69,12 @@ class FeaturePipelineStack(Stack):
             )
         )
 
-        # Create EventBridge rule to run daily at a specific time (e.g., 12:00 PM UTC)
+        # Create EventBridge rule
         rule = events.Rule(
             self, 'FeaturePipelineSchedule',
             schedule=events.Schedule.cron(
                 minute='0',
-                hour='12',  # This will run at 12:00 PM UTC (adjust as needed)
+                hour='12',
                 day='*',
                 month='*',
                 year='*'
