@@ -37,7 +37,7 @@ class FeaturePipelineStack(Stack):
                     'image': _lambda.Runtime.PYTHON_3_9.bundling_image,
                     'command': [
                         "bash", "-c",
-                        "pip install --target /asset-output/ -r requirements.txt && cp -au . /asset-output/"
+                        "pip install --target /asset-output/ numpy pandas scikit-learn xgboost boto3 && cp -au . /asset-output/"
                     ],
                 }
             ),
