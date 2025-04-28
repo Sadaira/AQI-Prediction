@@ -132,15 +132,18 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
      },
-     "S3Key": "2ffdf1e02c97725cf36b19d72ea29c0b936db4c4a79589a3ad88b1e8c4e604a2.zip"
+     "S3Key": "680349594c44878f62a0859d75d0fbf5a9fdabf91a6f46b34b90132c4c07d684.zip"
     },
     "Environment": {
      "Variables": {
       "WEATHER_API_SECRET_NAME": "weather-api-key",
-      "AIR_QUALITY_API_SECRET_NAME": "air-quality-api-key"
+      "AIR_QUALITY_API_SECRET_NAME": "air-quality-api-key",
+      "FEATURE_GROUP_NAME": "air-quality-features-08-14-56-40",
+      "CITIES": "los angeles"
      }
     },
-    "Handler": "feature_pipeline_handler.lambda_handler",
+    "Handler": "lambda.feature_pipeline_handler.lambda_handler",
+    "MemorySize": 256,
     "Role": {
      "Fn::GetAtt": [
       "FeaturePipelineLambdaServiceRoleEA11F51B",
@@ -156,8 +159,8 @@
    ],
    "Metadata": {
     "aws:cdk:path": "AQIPredictionFeaturePipeline/FeaturePipelineLambda/Resource",
-    "aws:asset:path": "asset.2ffdf1e02c97725cf36b19d72ea29c0b936db4c4a79589a3ad88b1e8c4e604a2",
-    "aws:asset:is-bundled": false,
+    "aws:asset:path": "asset.680349594c44878f62a0859d75d0fbf5a9fdabf91a6f46b34b90132c4c07d684",
+    "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
    }
   },
