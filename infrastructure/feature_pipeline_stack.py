@@ -18,12 +18,12 @@ class FeaturePipelineStack(Stack):
         # Import existing secrets
         weather_api_secret = secretsmanager.Secret.from_secret_name_v2(
             self, 'WeatherAPISecret',
-            'weather-api-key'
+            'weather-api-key-4ZbyEj'
         )
 
         air_quality_api_secret = secretsmanager.Secret.from_secret_name_v2(
             self, 'AirQualityAPISecret',
-            'air-quality-api-key'
+            'air-quality-api-key-AM8xem'
         )
 
         # Create Lambda function
@@ -50,6 +50,19 @@ class FeaturePipelineStack(Stack):
                 'FEATURE_GROUP_NAME': 'air-quality-features-08-14-56-40',
                 'CITIES': 'los angeles'
             }
+        )
+
+        feature_pipeline_lambda.add_to_role_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=[
+                    'secretsmanager:GetSecretValue'
+                ],
+                resources=[
+                    weather_api_secret.secret_arn,
+                    air_quality_api_secret.secret_arn
+                ]
+            )
         )
 
         # Grant Lambda permission to read secrets

@@ -3,6 +3,7 @@ import os
 import json
 import logging
 from datetime import datetime
+import boto3
 import sys
 from pathlib import Path
 
@@ -11,12 +12,34 @@ sys.path.append(src_dir)
 
 from pipelines.feature_pipeline import FeaturePipeline
 
-
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     try:
+        # Initialize Secrets Manager client
+        secrets_client = boto3.client('secretsmanager')
+        
+        # Get secrets
+        try:
+            weather_api_key = secrets_client.get_secret_value(
+                SecretId=os.environ['WEATHER_API_SECRET_NAME']
+            )['SecretString']
+            
+            air_quality_api_key = secrets_client.get_secret_value(
+                SecretId=os.environ['AIR_QUALITY_API_SECRET_NAME']
+            )['SecretString']
+            
+            logger.info("Successfully retrieved API keys from Secrets Manager")
+            
+            # Set these as environment variables for the pipeline to use
+            os.environ['WEATHER_API_KEY'] = weather_api_key
+            os.environ['AIR_QUALITY_API_KEY'] = air_quality_api_key
+            
+        except Exception as e:
+            logger.error(f"Error retrieving secrets: {str(e)}")
+            raise Exception("Missing required API keys in environment variables")
+
         # Initialize feature pipeline
         pipeline = FeaturePipeline(
             feature_group_name=os.environ['FEATURE_GROUP_NAME']
