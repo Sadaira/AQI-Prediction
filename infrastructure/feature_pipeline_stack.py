@@ -12,8 +12,8 @@ from constructs import Construct
 import os
 
 class FeaturePipelineStack(Stack):
-    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
-        super().__init__(scope, construct_id, **kwargs)
+    def __init__(self, scope: Construct, construct_id: str, *, lambda_layer=None, **kwargs) -> None:
+        super().__init__(scope, construct_id, **kwargs) 
 
         # Import existing secrets
         weather_api_secret = secretsmanager.Secret.from_secret_name_v2(
@@ -26,26 +26,18 @@ class FeaturePipelineStack(Stack):
             'air-quality-api-key-AM8xem'
         )
 
-        # Create Lambda function
+        # Create Lambda function with layer
         feature_pipeline_lambda = _lambda.Function(
             self, 'FeaturePipelineLambda',
             runtime=_lambda.Runtime.PYTHON_3_9,
             handler='lambda.feature_pipeline_handler.lambda_handler',
-            code=_lambda.Code.from_asset(
-                'src',
-                bundling={
-                    'image': _lambda.Runtime.PYTHON_3_9.bundling_image,
-                    'command': [
-                        "bash", "-c",
-                        "pip install --target /asset-output/ numpy pandas scikit-learn xgboost boto3 && cp -au . /asset-output/"
-                    ],
-                }
-            ),
+            code=_lambda.Code.from_asset('src'),
+            layers=[lambda_layer] if lambda_layer else [],
             timeout=Duration.minutes(5),
             memory_size=1024,
             environment={
-                'WEATHER_API_SECRET_NAME': 'weather-api-key-4ZbyEj',  # Use exact secret name
-                'AIR_QUALITY_API_SECRET_NAME': 'air-quality-api-key-AM8xem',  # Use exact secret name
+                'WEATHER_API_SECRET_NAME': 'weather-api-key-4ZbyEj',
+                'AIR_QUALITY_API_SECRET_NAME': 'air-quality-api-key-AM8xem',
                 'FEATURE_GROUP_NAME': 'air-quality-features-08-14-56-40',
                 'CITIES': 'los angeles'
             }
