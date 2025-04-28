@@ -7,3 +7,5 @@ pandas
 requests
 numpy
 tenacity==8.2.2
+scikit-learn
+xgboost

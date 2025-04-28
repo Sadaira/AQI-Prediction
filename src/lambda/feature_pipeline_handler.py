@@ -17,28 +17,43 @@ logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     try:
+        # Log environment variables (don't log in production!)
+        logger.info(f"Environment variables: {dict(os.environ)}")
+        
         # Initialize Secrets Manager client
         secrets_client = boto3.client('secretsmanager')
         
-        # Get secrets
+        # Get Weather API key
         try:
+            weather_secret_name = os.environ['WEATHER_API_SECRET_NAME']
+            logger.info(f"Attempting to retrieve weather API key from secret: {weather_secret_name}")
             weather_api_key = secrets_client.get_secret_value(
-                SecretId=os.environ['WEATHER_API_SECRET_NAME']
+                SecretId=weather_secret_name
             )['SecretString']
-            
-            air_quality_api_key = secrets_client.get_secret_value(
-                SecretId=os.environ['AIR_QUALITY_API_SECRET_NAME']
-            )['SecretString']
-            
-            logger.info("Successfully retrieved API keys from Secrets Manager")
-            
-            # Set these as environment variables for the pipeline to use
-            os.environ['WEATHER_API_KEY'] = weather_api_key
-            os.environ['AIR_QUALITY_API_KEY'] = air_quality_api_key
-            
+            logger.info("Successfully retrieved weather API key")
         except Exception as e:
-            logger.error(f"Error retrieving secrets: {str(e)}")
-            raise Exception("Missing required API keys in environment variables")
+            logger.error(f"Failed to retrieve weather API key: {str(e)}")
+            raise
+        
+        # Get Air Quality API key
+        try:
+            air_quality_secret_name = os.environ['AIR_QUALITY_API_SECRET_NAME']
+            logger.info(f"Attempting to retrieve air quality API key from secret: {air_quality_secret_name}")
+            air_quality_api_key = secrets_client.get_secret_value(
+                SecretId=air_quality_secret_name
+            )['SecretString']
+            logger.info("Successfully retrieved air quality API key")
+        except Exception as e:
+            logger.error(f"Failed to retrieve air quality API key: {str(e)}")
+            raise
+            
+        # Set these as environment variables for the pipeline to use
+        os.environ['WEATHER_API_KEY'] = weather_api_key
+        os.environ['AIR_QUALITY_API_KEY'] = air_quality_api_key
+            
+        # Rest of your code...
+        logger.info("API keys set successfully, proceeding with pipeline")
+        
 
         # Initialize feature pipeline
         pipeline = FeaturePipeline(
