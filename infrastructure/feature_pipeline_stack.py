@@ -37,16 +37,15 @@ class FeaturePipelineStack(Stack):
                     'image': _lambda.Runtime.PYTHON_3_9.bundling_image,
                     'command': [
                         "bash", "-c",
-                        "pip install --no-cache-dir -r requirements.txt -t /asset-output/ && cp -au . /asset-output/"
+                        "pip install --target /asset-output/ -r requirements.txt && cp -au . /asset-output/"
                     ],
-                    'user': 'root'
                 }
             ),
             timeout=Duration.minutes(5),
-            memory_size=256,
+            memory_size=1024,
             environment={
-                'WEATHER_API_SECRET_NAME': weather_api_secret.secret_name,
-                'AIR_QUALITY_API_SECRET_NAME': air_quality_api_secret.secret_name,
+                'WEATHER_API_SECRET_NAME': 'weather-api-key-4ZbyEj',  # Use exact secret name
+                'AIR_QUALITY_API_SECRET_NAME': 'air-quality-api-key-AM8xem',  # Use exact secret name
                 'FEATURE_GROUP_NAME': 'air-quality-features-08-14-56-40',
                 'CITIES': 'los angeles'
             }
@@ -59,8 +58,8 @@ class FeaturePipelineStack(Stack):
                     'secretsmanager:GetSecretValue'
                 ],
                 resources=[
-                    weather_api_secret.secret_arn,
-                    air_quality_api_secret.secret_arn
+                    f'arn:aws:secretsmanager:{Stack.of(self).region}:{Stack.of(self).account}:secret:weather-api-key-4ZbyEj-*',
+                    f'arn:aws:secretsmanager:{Stack.of(self).region}:{Stack.of(self).account}:secret:air-quality-api-key-AM8xem-*'
                 ]
             )
         )

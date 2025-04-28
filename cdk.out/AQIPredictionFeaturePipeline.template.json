@@ -47,11 +47,7 @@
          "Fn::Join": [
           "",
           [
-           "arn:",
-           {
-            "Ref": "AWS::Partition"
-           },
-           ":secretsmanager:",
+           "arn:aws:secretsmanager:",
            {
             "Ref": "AWS::Region"
            },
@@ -59,7 +55,7 @@
            {
             "Ref": "AWS::AccountId"
            },
-           ":secret:weather-api-key-4ZbyEj"
+           ":secret:weather-api-key-4ZbyEj-*"
           ]
          ]
         },
@@ -67,11 +63,7 @@
          "Fn::Join": [
           "",
           [
-           "arn:",
-           {
-            "Ref": "AWS::Partition"
-           },
-           ":secretsmanager:",
+           "arn:aws:secretsmanager:",
            {
             "Ref": "AWS::Region"
            },
@@ -79,7 +71,7 @@
            {
             "Ref": "AWS::AccountId"
            },
-           ":secret:air-quality-api-key-AM8xem"
+           ":secret:air-quality-api-key-AM8xem-*"
           ]
          ]
         }
@@ -178,7 +170,7 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
      },
-     "S3Key": "2c23cf7ef02aefd9ce861c26aec51668be680dcd7da0c466a39a0e2774cc79cc.zip"
+     "S3Key": "d3c5b346ab15ad65f9ea6bc940753bfcbef6ab1a48f49aa64c57386549ed9f1d.zip"
     },
     "Environment": {
      "Variables": {
@@ -205,8 +197,8 @@
    ],
    "Metadata": {
     "aws:cdk:path": "AQIPredictionFeaturePipeline/FeaturePipelineLambda/Resource",
-    "aws:asset:path": "asset.2c23cf7ef02aefd9ce861c26aec51668be680dcd7da0c466a39a0e2774cc79cc",
-    "aws:asset:is-bundled": true,
+    "aws:asset:path": "asset.d3c5b346ab15ad65f9ea6bc940753bfcbef6ab1a48f49aa64c57386549ed9f1d",
+    "aws:asset:is-bundled": false,
     "aws:asset:property": "Code"
    }
   },
