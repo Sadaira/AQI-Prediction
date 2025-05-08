@@ -51,10 +51,8 @@ def lambda_handler(event, context):
         os.environ['WEATHER_API_KEY'] = weather_api_key
         os.environ['AIR_QUALITY_API_KEY'] = air_quality_api_key
             
-        # Rest of your code...
         logger.info("API keys set successfully, proceeding with pipeline")
         
-
         # Initialize feature pipeline
         pipeline = FeaturePipeline(
             feature_group_name=os.environ['FEATURE_GROUP_NAME']
