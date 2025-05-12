@@ -12,7 +12,7 @@ from constructs import Construct
 import os
 
 class FeaturePipelineStack(Stack):
-    def __init__(self, scope: Construct, construct_id: str, *, base_layer=None, ml_layer=None, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, *, base_layer=None, ml_layer=None, feature_pipeline_layer=None, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         # Import existing secrets
@@ -26,12 +26,21 @@ class FeaturePipelineStack(Stack):
             'air-quality-api-key-AM8xem'
         )
 
+        # Create a list of layers to use
+        layers = []
+        if base_layer:
+            layers.append(base_layer)
+        if ml_layer:
+            layers.append(ml_layer)
+        if feature_pipeline_layer:
+            layers.append(feature_pipeline_layer)
+
         feature_pipeline_lambda = _lambda.Function(
             self, 'FeaturePipelineLambda',
             runtime=_lambda.Runtime.PYTHON_3_9,
             handler='lambda.feature_pipeline_handler.lambda_handler',
             code=_lambda.Code.from_asset('src'),
-            layers=[base_layer, ml_layer] if base_layer and ml_layer else [],
+            layers=layers,
             timeout=Duration.minutes(5),
             memory_size=1024,
             environment={
