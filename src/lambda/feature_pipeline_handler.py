@@ -27,8 +27,12 @@ def lambda_handler(event, context):
         try:
             weather_secret_name = os.environ['WEATHER_API_SECRET_NAME']
             logger.info(f"Attempting to retrieve weather API key from secret: {weather_secret_name}")
+            # # List available secrets for debugging
+            # secrets_list = secrets_client.list_secrets()
+            # logger.info(f"Available secrets: {[s['Name'] for s in secrets_list['SecretList']]}")
+                        
             weather_api_key = secrets_client.get_secret_value(
-                SecretId=weather_secret_name
+                SecretId="arn:aws:secretsmanager:us-east-1:784376946367:secret:weather-api-key-4ZbyEj"#weather_secret_name
             )['SecretString']
             logger.info("Successfully retrieved weather API key")
         except Exception as e:
@@ -40,7 +44,7 @@ def lambda_handler(event, context):
             air_quality_secret_name = os.environ['AIR_QUALITY_API_SECRET_NAME']
             logger.info(f"Attempting to retrieve air quality API key from secret: {air_quality_secret_name}")
             air_quality_api_key = secrets_client.get_secret_value(
-                SecretId=air_quality_secret_name
+                SecretId="arn:aws:secretsmanager:us-east-1:784376946367:secret:air-quality-api-key-AM8xem"#air_quality_secret_name
             )['SecretString']
             logger.info("Successfully retrieved air quality API key")
         except Exception as e:

@@ -26,18 +26,25 @@ class FeaturePipelineStack(Stack):
             'air-quality-api-key-AM8xem'
         )
 
+        # Reference existing Lambda layers by ARN
+        pandasNumpyLayer = _lambda.LayerVersion.from_layer_version_arn(
+            self, 'ExistingBaseLayer',
+            layer_version_arn='arn:aws:lambda:us-east-1:784376946367:layer:pandas-numpy-layer:1'
+        )
+
+        feature_pipeline_layer = _lambda.LayerVersion.from_layer_version_arn(
+            self, 'ExistingFeaturePipelineLayer',
+            layer_version_arn='arn:aws:lambda:us-east-1:784376946367:layer:featurePipelineLayer:1'
+        )
+        
         # Create a list of layers to use
-        layers = []
-        if base_layer:
-            layers.append(base_layer)
-        if ml_layer:
-            layers.append(ml_layer)
-        if feature_pipeline_layer:
-            layers.append(feature_pipeline_layer)
+        layers = [pandasNumpyLayer, feature_pipeline_layer]
+        
+
 
         feature_pipeline_lambda = _lambda.Function(
             self, 'FeaturePipelineLambda',
-            runtime=_lambda.Runtime.PYTHON_3_9,
+            runtime=_lambda.Runtime.PYTHON_3_10,
             handler='lambda.feature_pipeline_handler.lambda_handler',
             code=_lambda.Code.from_asset('src'),
             layers=layers,
@@ -55,18 +62,21 @@ class FeaturePipelineStack(Stack):
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
                 actions=[
-                    'secretsmanager:GetSecretValue'
+                    'secretsmanager:GetSecretValue',
+                    'secretsmanager:DescribeSecret',
+                    'secretsmanager:ListSecrets'
                 ],
                 resources=[
-                    f'arn:aws:secretsmanager:{Stack.of(self).region}:{Stack.of(self).account}:secret:weather-api-key-4ZbyEj-*',
-                    f'arn:aws:secretsmanager:{Stack.of(self).region}:{Stack.of(self).account}:secret:air-quality-api-key-AM8xem-*'
+                    '*'
+                    # f'arn:aws:secretsmanager:{Stack.of(self).region}:{Stack.of(self).account}:secret:weather-api-key-4ZbyEj-*',
+                    # f'arn:aws:secretsmanager:{Stack.of(self).region}:{Stack.of(self).account}:secret:air-quality-api-key-AM8xem-*'
                 ]
             )
         )
 
         # Grant Lambda permission to read secrets
-        weather_api_secret.grant_read(feature_pipeline_lambda)
-        air_quality_api_secret.grant_read(feature_pipeline_lambda)
+        # weather_api_secret.grant_read(feature_pipeline_lambda)
+        # air_quality_api_secret.grant_read(feature_pipeline_lambda)
 
         # Add CloudWatch permissions
         feature_pipeline_lambda.add_to_role_policy(

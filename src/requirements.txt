@@ -1,11 +1,9 @@
 python-dotenv
-boto3
+boto3==1.37.14
 pytest
 pytest-cov
 pytest-mock
-pandas
 requests
-numpy
 tenacity==8.2.2
-scikit-learn
-xgboost
+pandas
+numpy==1.26.4
