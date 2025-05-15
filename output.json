@@ -1,1 +1,1 @@
-{"statusCode": 200, "body": "{\"message\": \"Feature pipeline execution completed\", \"timestamp\": \"2025-05-15T18:15:53.510002\", \"results\": {\"los angeles\": \"failed: The truth value of a Series is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all().\"}}"}
+{"statusCode": 200, "body": "{\"message\": \"Feature pipeline execution completed\", \"timestamp\": \"2025-05-15T18:49:37.637866\", \"results\": {\"los angeles\": \"failed: RetryError[<Future at 0x7fccb29e8c40 state=finished raised TypeError>]\"}}"}

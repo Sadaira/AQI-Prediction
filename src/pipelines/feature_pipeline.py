@@ -77,6 +77,7 @@ class FeaturePipeline:
     def fetch_weather_data(self, city: str = 'los angeles') -> pd.DataFrame:
         """Fetch weather data from Visual Crossing API."""
         try:
+            logger.info(f"Making request to weather API for city: {city}")
             response = requests.get(
                 f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{city}/today',
                 params={
@@ -87,25 +88,60 @@ class FeaturePipeline:
                 }
             )
             response.raise_for_status()
-            data = pd.DataFrame(response.json()['days'])
+            
+            # Log response for debugging
+            logger.info(f"Weather API response status: {response.status_code}")
+            
+            # Parse JSON response
+            json_data = response.json()
+            logger.info(f"Weather API JSON keys: {json_data.keys()}")
+            
+            if 'days' not in json_data:
+                logger.error(f"Missing 'days' in weather API response: {json_data}")
+                raise ValueError("Invalid response format from weather API")
+                
+            data = pd.DataFrame(json_data['days'])
             self.monitoring.log_metric('WeatherAPISuccess', 1)
             return data
         except requests.exceptions.RequestException as e:
             self.monitoring.log_metric('WeatherAPIError', 1)
             logger.error(f"Error fetching weather data: {str(e)}")
             raise
+        except Exception as e:
+            logger.error(f"Unexpected error in fetch_weather_data: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
+            raise TypeError(f"Error processing weather data: {str(e)}")
+
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
     def fetch_air_quality_data(self, city_name='los angeles') -> pd.DataFrame:
         """Fetch air quality data from WAQI API."""
         try:
+            logger.info(f"Making request to air quality API for city: {city_name}")
             response = requests.get(
                 f'https://api.waqi.info/feed/{city_name}/',
                 params={'token': self.air_quality_key}
             )
             response.raise_for_status()
             
-            data = response.json()['data']
+            # Log response for debugging
+            logger.info(f"Air quality API response status: {response.status_code}")
+            
+            # Parse JSON response
+            json_data = response.json()
+            logger.info(f"Air quality API JSON keys: {json_data.keys()}")
+            
+            if 'data' not in json_data:
+                logger.error(f"Missing 'data' in air quality API response: {json_data}")
+                raise ValueError("Invalid response format from air quality API")
+                
+            data = json_data['data']
+            
+            if 'iaqi' not in data:
+                logger.error(f"Missing 'iaqi' in air quality data: {data}")
+                raise ValueError("Invalid data format from air quality API")
+                
             iaqi = data['iaqi']
             
             # Handle missing parameters
@@ -125,6 +161,12 @@ class FeaturePipeline:
             self.monitoring.log_metric('AirQualityAPIError', 1)
             logger.error(f"Error fetching air quality data: {str(e)}")
             raise
+        except Exception as e:
+            logger.error(f"Unexpected error in fetch_air_quality_data: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
+            raise TypeError(f"Error processing air quality data: {str(e)}")
+
 
     def process_features(self, weather_data: pd.DataFrame, 
                         air_quality_data: pd.DataFrame) -> pd.DataFrame:
