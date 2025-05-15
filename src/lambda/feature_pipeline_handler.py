@@ -68,12 +68,28 @@ def lambda_handler(event, context):
         results = {}
         for city in cities:
             try:
-                features = pipeline.run_pipeline(city=city.strip())
-                results[city] = 'success'
+                logger.info(f"Fetching weather data for {city}")
+                weather_data = pipeline.fetch_weather_data(city=city.strip())
+                logger.info(f"Successfully fetched weather data for {city}")
+                
+                logger.info(f"Fetching air quality data for {city}")
+                air_quality_data = pipeline.fetch_air_quality_data(city=city.strip())
+                logger.info(f"Successfully fetched air quality data for {city}")
+                
+                logger.info(f"Processing features for {city}")
+                features = pipeline.process_features(weather_data, air_quality_data)
                 logger.info(f"Successfully processed features for {city}")
+                
+                logger.info(f"Writing features to feature store for {city}")
+                pipeline.write_to_feature_store(features)
+                logger.info(f"Successfully wrote features to feature store for {city}")
+                
+                results[city] = 'success'
             except Exception as e:
+                import traceback
+                tb = traceback.format_exc()
+                logger.error(f"Failed to process features for {city}: {str(e)}\n{tb}")
                 results[city] = f'failed: {str(e)}'
-                logger.error(f"Failed to process features for {city}: {str(e)}")
         
         return {
             'statusCode': 200,

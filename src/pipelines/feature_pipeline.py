@@ -41,11 +41,12 @@ class DataQualityValidator:
         validation_results = {}
         
         # Basic data checks
-        validation_results['has_data'] = not df.empty
-        validation_results['no_missing_pm25'] = df['pm25'].isnull().sum() == 0
+        validation_results['has_data'] = len(df) > 0
+        validation_results['no_missing_pm25'] = df['pm25'].isna().sum() == 0
         
         # Value range checks
         if 'temperature' in df.columns:
+            # Use .all() to convert Series to boolean
             validation_results['valid_temperature'] = df['temperature'].between(-50, 150).all()
         if 'humidity' in df.columns:
             validation_results['valid_humidity'] = df['humidity'].between(0, 100).all()
@@ -53,6 +54,7 @@ class DataQualityValidator:
             validation_results['valid_pm25'] = df['pm25'].between(0, 500).all()
 
         return validation_results
+
 
 class FeaturePipeline:
     def __init__(self, feature_group_name: str):
@@ -162,8 +164,8 @@ class FeaturePipeline:
                 'Rain': 4, 'Overcast': 5,
                 'Rain, Overcast': 6
             }
-            features['conditions'] = features['conditions'].map(conditions)
-
+            if 'conditions' in features.columns:
+                features['conditions'] = features['conditions'].map(conditions)
             # Add timestamp and record_id if not present
             if 'timestamp' not in features.columns:
                 features['timestamp'] = pd.Series([int(round(time.time()))] * len(features), dtype="float64")
@@ -193,13 +195,23 @@ class FeaturePipeline:
         failed_writes = 0
 
         for idx, row in features.iterrows():
-            record = [
-                {
+            record = []
+            
+            # Process each column individually
+            for column in features.columns:
+                value = row[column]
+                
+                # Convert to simple string, handling all types
+                if pd.isna(value):
+                    value_str = ""
+                else:
+                    # Convert to string and clean up any newlines
+                    value_str = str(value).replace("\n", " ").strip()
+                
+                record.append({
                     'FeatureName': column,
-                    'ValueAsString': str(row[column])
-                }
-                for column in features.columns
-            ]
+                    'ValueAsString': value_str
+                })
             
             try:
                 self.featurestore_runtime.put_record(
@@ -238,4 +250,6 @@ class FeaturePipeline:
         except Exception as e:
             self.monitoring.log_metric('PipelineError', 1)
             logger.error(f"Pipeline execution failed: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
             raise
