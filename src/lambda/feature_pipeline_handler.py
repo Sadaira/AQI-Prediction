@@ -5,102 +5,193 @@ import logging
 from datetime import datetime
 import boto3
 import sys
+import pandas as pd
+import numpy as np
 from pathlib import Path
 
 src_dir = str(Path(__file__).resolve().parents[1])
 sys.path.append(src_dir)
-
-from pipelines.feature_pipeline import FeaturePipeline
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     try:
-        # Log environment variables (don't log in production!)
-        logger.info(f"Environment variables: {dict(os.environ)}")
+        # For testing purposes only - hardcode API keys
+        # IMPORTANT: Remove these hardcoded keys before deploying to production
+        weather_api_key = "7KJHSXG9NPA2TPE8VP52NTSPB"  # Replace with your actual key
+        air_quality_api_key = "4f3f6e2b1360980aec87f727b4e6d7fb70a6169f"  # Replace with your actual key
         
-        # Initialize Secrets Manager client
-        secrets_client = boto3.client('secretsmanager')
+        # Get city from environment variable
+        city = os.environ.get('CITIES', 'los angeles').split(',')[0].strip()
+        logger.info(f"Processing city: {city}")
         
-        # Get Weather API key
-        try:
-            weather_secret_name = os.environ['WEATHER_API_SECRET_NAME']
-            logger.info(f"Attempting to retrieve weather API key from secret: {weather_secret_name}")
-            # # List available secrets for debugging
-            # secrets_list = secrets_client.list_secrets()
-            # logger.info(f"Available secrets: {[s['Name'] for s in secrets_list['SecretList']]}")
-                        
-            weather_api_key = secrets_client.get_secret_value(
-                SecretId="arn:aws:secretsmanager:us-east-1:784376946367:secret:weather-api-key-4ZbyEj"#weather_secret_name
-            )['SecretString']
-            logger.info("Successfully retrieved weather API key")
-        except Exception as e:
-            logger.error(f"Failed to retrieve weather API key: {str(e)}")
-            raise
+        # Fetch weather data directly
+        logger.info(f"Fetching weather data for {city}")
+        import requests
+        weather_response = requests.get(
+            f'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{city}/today',
+            params={
+                'unitGroup': 'us',
+                'include': 'days',
+                'key': weather_api_key,
+                'contentType': 'json'
+            }
+        )
+        weather_response.raise_for_status()
+        weather_data = pd.DataFrame(weather_response.json()['days'])
+        logger.info(f"Weather data columns: {weather_data.columns.tolist()}")
         
-        # Get Air Quality API key
-        try:
-            air_quality_secret_name = os.environ['AIR_QUALITY_API_SECRET_NAME']
-            logger.info(f"Attempting to retrieve air quality API key from secret: {air_quality_secret_name}")
-            air_quality_api_key = secrets_client.get_secret_value(
-                SecretId="arn:aws:secretsmanager:us-east-1:784376946367:secret:air-quality-api-key-AM8xem"#air_quality_secret_name
-            )['SecretString']
-            logger.info("Successfully retrieved air quality API key")
-        except Exception as e:
-            logger.error(f"Failed to retrieve air quality API key: {str(e)}")
-            raise
-            
-        # Set these as environment variables for the pipeline to use
-        os.environ['WEATHER_API_KEY'] = weather_api_key
-        os.environ['AIR_QUALITY_API_KEY'] = air_quality_api_key
-            
-        logger.info("API keys set successfully, proceeding with pipeline")
+        # Fetch air quality data directly
+        logger.info(f"Fetching air quality data for {city}")
+        air_quality_response = requests.get(
+            f'https://api.waqi.info/feed/{city}/',
+            params={'token': air_quality_api_key}
+        )
+        air_quality_response.raise_for_status()
         
-        # Initialize feature pipeline
-        pipeline = FeaturePipeline(
-            feature_group_name=os.environ['FEATURE_GROUP_NAME']
+        aq_data = air_quality_response.json()['data']
+        iaqi = aq_data['iaqi']
+        
+        # Handle missing parameters
+        params = ['pm10', 'pm25', 'no2', 'so2', 'co', 'o3']
+        for param in params:
+            if param not in iaqi:
+                iaqi[param] = {"v": np.nan}
+        
+        air_quality_data = pd.DataFrame({
+            'date': [aq_data['time']['s'][:10]],
+            **{param: [iaqi[param]['v']] for param in params}
+        })
+        logger.info(f"Air quality data columns: {air_quality_data.columns.tolist()}")
+        
+        # Process and combine data
+        logger.info("Processing features")
+        
+        # Rename columns for consistency
+        if 'datetime' in weather_data.columns:
+            weather_data = weather_data.rename(columns={'datetime': 'date'})
+        
+        # Get the feature definitions from the Feature Group
+        feature_group_name = 'air-quality-features-08-14-56-40'
+        sagemaker_client = boto3.client('sagemaker')
+        
+        response = sagemaker_client.describe_feature_group(
+            FeatureGroupName=feature_group_name
         )
         
-        # Get cities from environment variable (comma-separated)
-        cities = os.environ.get('CITIES', 'los angeles').split(',')
+        # Extract feature names from the response
+        valid_features = [feature['FeatureName'] for feature in response['FeatureDefinitions']]
+        logger.info(f"Valid features in Feature Group: {valid_features}")
         
-        results = {}
-        for city in cities:
-            try:
-                logger.info(f"Fetching weather data for {city}")
-                weather_data = pipeline.fetch_weather_data(city=city.strip())
-                logger.info(f"Successfully fetched weather data for {city}")
-                
-                logger.info(f"Fetching air quality data for {city}")
-                air_quality_data = pipeline.fetch_air_quality_data(city=city.strip())
-                logger.info(f"Successfully fetched air quality data for {city}")
-                
-                logger.info(f"Processing features for {city}")
-                features = pipeline.process_features(weather_data, air_quality_data)
-                logger.info(f"Successfully processed features for {city}")
-                
-                logger.info(f"Writing features to feature store for {city}")
-                pipeline.write_to_feature_store(features)
-                logger.info(f"Successfully wrote features to feature store for {city}")
-                
-                results[city] = 'success'
-            except Exception as e:
-                import traceback
-                tb = traceback.format_exc()
-                logger.error(f"Failed to process features for {city}: {str(e)}\n{tb}")
-                results[city] = f'failed: {str(e)}'
+        # Create a dictionary to hold feature values (this ensures uniqueness)
+        feature_dict = {}
+        
+        # Required features for the Feature Group
+        record_id = datetime.now().strftime('%Y%m%d%H%M%S')
+        timestamp = int(datetime.now().timestamp())
+        
+        # Add required features
+        if 'event_time' in valid_features:
+            feature_dict['event_time'] = str(timestamp)
+        
+        if 'record_id' in valid_features:
+            feature_dict['record_id'] = record_id
+        
+        if 'timestamp' in valid_features:
+            feature_dict['timestamp'] = str(timestamp)
+        
+        # Add weather data features
+        if len(weather_data) > 0:
+            for col in weather_data.columns:
+                if col in valid_features:
+                    value = weather_data.iloc[0][col]
+                    if pd.notna(value):
+                        # Handle specific columns that need type conversion
+                        if col in ['precipprob', 'snow', 'snowdepth', 'winddir', 'cloudcover', 'visibility', 'uvindex', 'conditions']:
+                            # Convert to integer
+                            if col == 'conditions':
+                                # Map conditions to integers
+                                conditions_map = {
+                                    'Clear': 1, 
+                                    'Partially cloudy': 2,
+                                    'Rain, Partially cloudy': 3,
+                                    'Rain': 4, 
+                                    'Overcast': 5,
+                                    'Rain, Overcast': 6
+                                }
+                                value = conditions_map.get(str(value), 0)
+                            else:
+                                try:
+                                    value = int(float(value))
+                                except (ValueError, TypeError):
+                                    value = 0
+                        elif col in ['temp', 'humidity', 'precip', 'windspeed', 'tempmax', 'tempmin', 'feelslike', 'feelslikemax', 'feelslikemin', 'dew', 'windgust', 'solarradiation', 'solarenergy', 'moonphase']:
+                            # Convert to float with 2 decimal places
+                            try:
+                                value = round(float(value), 2)
+                            except (ValueError, TypeError):
+                                value = 0.0
+                        
+                        feature_dict[col] = str(value)
+                    else:
+                        # Handle null values based on expected type
+                        if col in ['precipprob', 'snow', 'snowdepth', 'winddir', 'cloudcover', 'visibility', 'uvindex', 'conditions']:
+                            feature_dict[col] = '0'
+                        elif col in ['temp', 'humidity', 'precip', 'windspeed', 'tempmax', 'tempmin', 'feelslike', 'feelslikemax', 'feelslikemin', 'dew', 'windgust', 'solarradiation', 'solarenergy', 'moonphase']:
+                            feature_dict[col] = '0.0'
+                        else:
+                            feature_dict[col] = ''
+
+        # Add air quality data features
+        if len(air_quality_data) > 0:
+            for col in air_quality_data.columns:
+                if col in valid_features and col not in feature_dict:  # Only add if not already present
+                    value = air_quality_data.iloc[0][col]
+                    if pd.notna(value):
+                        if col == 'pm25':
+                            try:
+                                value = int(float(value))
+                            except (ValueError, TypeError):
+                                value = 0
+                        feature_dict[col] = str(value)
+                    else:
+                        feature_dict[col] = ''
+        
+        # Convert dictionary to the required format for PutRecord
+        record = [
+            {
+                'FeatureName': key,
+                'ValueAsString': value
+            }
+            for key, value in feature_dict.items()
+        ]
+        
+        # Log the record for debugging
+        logger.info(f"Record to be written: {json.dumps(record)}")
+        
+        # Write to Feature Store
+        logger.info("Writing to Feature Store")
+        featurestore_runtime = boto3.client('sagemaker-featurestore-runtime')
+        
+        featurestore_runtime.put_record(
+            FeatureGroupName=feature_group_name,
+            Record=record
+        )
         
         return {
             'statusCode': 200,
             'body': json.dumps({
-                'message': 'Feature pipeline execution completed',
+                'message': 'Feature pipeline execution completed successfully',
                 'timestamp': datetime.now().isoformat(),
-                'results': results
+                'city': city
             })
         }
     except Exception as e:
-        logger.error(f"Lambda execution failed: {str(e)}")
+        import traceback
+        logger.error(f"Error: {str(e)}")
+        logger.error(traceback.format_exc())
+        
         return {
             'statusCode': 500,
             'body': json.dumps({

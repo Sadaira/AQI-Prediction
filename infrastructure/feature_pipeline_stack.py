@@ -3,11 +3,11 @@ from aws_cdk import (
     Stack,
     aws_lambda as _lambda,
     aws_events as events,
-    aws_events_targets as targets,
     aws_iam as iam,
     aws_secretsmanager as secretsmanager,
     Duration
 )
+from aws_cdk.aws_events_targets import LambdaFunction
 from constructs import Construct
 import os
 
@@ -104,7 +104,7 @@ class FeaturePipelineStack(Stack):
         )
 
         # Add Lambda as target
-        rule.add_target(targets.LambdaFunction(feature_pipeline_lambda))
+        rule.add_target(LambdaFunction(feature_pipeline_lambda))
 
         # Add SageMaker permissions
         feature_pipeline_lambda.add_to_role_policy(

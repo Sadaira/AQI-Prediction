@@ -1,1 +1,1 @@
-{"statusCode": 200, "body": "{\"message\": \"Feature pipeline execution completed\", \"timestamp\": \"2025-05-15T18:49:37.637866\", \"results\": {\"los angeles\": \"failed: RetryError[<Future at 0x7fccb29e8c40 state=finished raised TypeError>]\"}}"}
+{"statusCode": 200, "body": "{\"message\": \"Feature pipeline execution completed successfully\", \"timestamp\": \"2025-05-19T21:48:04.693487\", \"city\": \"los angeles\"}"}
