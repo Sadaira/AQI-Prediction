@@ -41,12 +41,20 @@ class DataQualityValidator:
         validation_results = {}
         
         # Basic data checks
+<<<<<<< HEAD
         validation_results['has_data'] = len(df) > 0
         validation_results['no_missing_pm25'] = df['pm25'].isna().sum() == 0
         
         # Value range checks
         if 'temperature' in df.columns:
             # Use .all() to convert Series to boolean
+=======
+        validation_results['has_data'] = not df.empty
+        validation_results['no_missing_pm25'] = df['pm25'].isnull().sum() == 0
+        
+        # Value range checks
+        if 'temperature' in df.columns:
+>>>>>>> 49a6fcfd8ebc68d07fc025c01259e5bf6d637156
             validation_results['valid_temperature'] = df['temperature'].between(-50, 150).all()
         if 'humidity' in df.columns:
             validation_results['valid_humidity'] = df['humidity'].between(0, 100).all()
@@ -55,7 +63,10 @@ class DataQualityValidator:
 
         return validation_results
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 49a6fcfd8ebc68d07fc025c01259e5bf6d637156
 class FeaturePipeline:
     def __init__(self, feature_group_name: str):
         """Initialize the feature pipeline with API keys and AWS client."""
@@ -88,6 +99,7 @@ class FeaturePipeline:
                 }
             )
             response.raise_for_status()
+<<<<<<< HEAD
             
             # Log response for debugging
             logger.info(f"Weather API response status: {response.status_code}")
@@ -101,12 +113,16 @@ class FeaturePipeline:
                 raise ValueError("Invalid response format from weather API")
                 
             data = pd.DataFrame(json_data['days'])
+=======
+            data = pd.DataFrame(response.json()['days'])
+>>>>>>> 49a6fcfd8ebc68d07fc025c01259e5bf6d637156
             self.monitoring.log_metric('WeatherAPISuccess', 1)
             return data
         except requests.exceptions.RequestException as e:
             self.monitoring.log_metric('WeatherAPIError', 1)
             logger.error(f"Error fetching weather data: {str(e)}")
             raise
+<<<<<<< HEAD
         except Exception as e:
             logger.error(f"Unexpected error in fetch_weather_data: {str(e)}")
             import traceback
@@ -114,6 +130,9 @@ class FeaturePipeline:
             raise TypeError(f"Error processing weather data: {str(e)}")
 
 
+=======
+
+>>>>>>> 49a6fcfd8ebc68d07fc025c01259e5bf6d637156
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
     def fetch_air_quality_data(self, city_name='los angeles') -> pd.DataFrame:
         """Fetch air quality data from WAQI API."""
@@ -161,12 +180,15 @@ class FeaturePipeline:
             self.monitoring.log_metric('AirQualityAPIError', 1)
             logger.error(f"Error fetching air quality data: {str(e)}")
             raise
+<<<<<<< HEAD
         except Exception as e:
             logger.error(f"Unexpected error in fetch_air_quality_data: {str(e)}")
             import traceback
             logger.error(traceback.format_exc())
             raise TypeError(f"Error processing air quality data: {str(e)}")
 
+=======
+>>>>>>> 49a6fcfd8ebc68d07fc025c01259e5bf6d637156
 
     def process_features(self, weather_data: pd.DataFrame, 
                         air_quality_data: pd.DataFrame) -> pd.DataFrame:
@@ -206,8 +228,13 @@ class FeaturePipeline:
                 'Rain': 4, 'Overcast': 5,
                 'Rain, Overcast': 6
             }
+<<<<<<< HEAD
             if 'conditions' in features.columns:
                 features['conditions'] = features['conditions'].map(conditions)
+=======
+            features['conditions'] = features['conditions'].map(conditions)
+
+>>>>>>> 49a6fcfd8ebc68d07fc025c01259e5bf6d637156
             # Add timestamp and record_id if not present
             if 'timestamp' not in features.columns:
                 features['timestamp'] = pd.Series([int(round(time.time()))] * len(features), dtype="float64")
@@ -292,6 +319,9 @@ class FeaturePipeline:
         except Exception as e:
             self.monitoring.log_metric('PipelineError', 1)
             logger.error(f"Pipeline execution failed: {str(e)}")
+<<<<<<< HEAD
             import traceback
             logger.error(traceback.format_exc())
+=======
+>>>>>>> 49a6fcfd8ebc68d07fc025c01259e5bf6d637156
             raise

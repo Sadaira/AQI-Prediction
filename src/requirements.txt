@@ -1,4 +1,5 @@
 python-dotenv
+<<<<<<< HEAD
 boto3==1.37.14
 pytest
 pytest-cov
@@ -7,3 +8,15 @@ requests
 tenacity==8.2.2
 pandas
 numpy==1.26.4
+=======
+boto3
+pytest
+pytest-cov
+pytest-mock
+pandas
+requests
+numpy
+tenacity==8.2.2
+scikit-learn
+xgboost
+>>>>>>> 49a6fcfd8ebc68d07fc025c01259e5bf6d637156
