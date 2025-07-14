@@ -1,4 +1,4 @@
-# src/training/train.py
+# src/pipelines/train.py
 import argparse
 import os
 import pandas as pd
@@ -84,8 +84,9 @@ def main():
         mlflow.log_metric("mae", mae)
         mlflow.log_metric("r2", r2)
         
-        # Log model
-        mlflow.sklearn.log_model(model, "model")
+        # Log model artifacts
+        mlflow.log_artifact(os.path.join(args.model_dir, 'model.joblib'))
+        mlflow.log_artifact(os.path.join(args.model_dir, 'scaler.joblib'))
         
         # Save model and scaler
         joblib.dump(model, os.path.join(args.model_dir, 'model.joblib'))
@@ -94,5 +95,4 @@ def main():
         print(f"Model trained successfully. RMSE: {rmse:.2f}, R2: {r2:.3f}")
 
 if __name__ == '__main__':
-    main()
     main()
