@@ -77,9 +77,9 @@ class TrainingPipeline:
             'TrainingJobName': job_name,
             'RoleArn': role_arn,
             'AlgorithmSpecification': {
-                'TrainingImage': '246618743249.dkr.ecr.us-east-1.amazonaws.com/xgboost:latest',
                 'TrainingInputMode': 'File'
             },
+            'AlgorithmName': 'arn:aws:sagemaker:us-east-1:865070037744:algorithm/xgboost-2022-04-13-07-44-50-522',
             'InputDataConfig': [{
                 'ChannelName': 'train',
                 'DataSource': {
@@ -94,9 +94,9 @@ class TrainingPipeline:
                 'S3OutputPath': f's3://{self.bucket_name}/model-output/'
             },
             'ResourceConfig': {
-                'InstanceType': 'ml.m5.xlarge',
+                'InstanceType': 'ml.m5.large',
                 'InstanceCount': 1,
-                'VolumeSizeInGB': 30
+                'VolumeSizeInGB': 20
             },
             'StoppingCondition': {
                 'MaxRuntimeInSeconds': 3600
