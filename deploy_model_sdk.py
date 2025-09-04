@@ -1,5 +1,6 @@
 import boto3
 from sagemaker.xgboost import XGBoostModel
+from sagemaker.serverless import ServerlessInferenceConfig
 from datetime import datetime
 
 # Configuration
@@ -16,11 +17,15 @@ model = XGBoostModel(
     framework_version='1.5-1'
 )
 
-# Deploy to endpoint
+# Deploy to serverless endpoint
 endpoint_name = f"aqi-prediction-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+serverless_config = ServerlessInferenceConfig(
+    memory_size_in_mb=2048,
+    max_concurrency=5
+)
+
 predictor = model.deploy(
-    initial_instance_count=1,
-    instance_type='ml.m5.large',
+    serverless_inference_config=serverless_config,
     endpoint_name=endpoint_name
 )
 

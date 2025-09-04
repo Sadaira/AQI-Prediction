@@ -19,8 +19,8 @@ sample_features = {
 feature_order = ['temp', 'humidity', 'precip', 'windspeed', 'cloudcover', 'visibility', 'solarradiation']
 csv_data = ','.join([str(sample_features[col]) for col in feature_order])
 
-# Replace with your actual endpoint name
-endpoint_name = "aqi-prediction-20250818-161138"
+# Replace with your actual serverless endpoint name
+endpoint_name = "aqi-prediction-YYYYMMDD-HHMMSS"  # Update with new serverless endpoint
 
 try:
     response = runtime.invoke_endpoint(

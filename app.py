@@ -39,7 +39,7 @@ if st.sidebar.button("🔮 Predict Air Quality", type="primary"):
     try:
         # Make prediction
         response = runtime.invoke_endpoint(
-            EndpointName="aqi-prediction-20250818-161138",
+            EndpointName="aqi-prediction-YYYYMMDD-HHMMSS",  # Update with your serverless endpoint
             ContentType='text/csv',
             Body=csv_data
         )
